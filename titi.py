@@ -5,32 +5,32 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from time import sleep
 
-# ========== OBJECTIVE FUNCTIONS ==========
+# ========== FONCTIONS OBJECTIF ==========
 def f1(x):
     return np.sum(x**2, axis=1)
 
 def f8(x):
     return -np.sum(x * np.sin(np.sqrt(np.abs(x))), axis=1)
 
-# ========== GSA IMPLEMENTATION (K-best version) ==========
+# ========== IMPLEMENTATION GSA (version K-best) ==========
 def run_gsa(G0, alpha, func, N=100, D=30, LB=-500, UB=500, Tmax=300, epsilon=1e-15):
     t = 0
     x = np.random.uniform(LB, UB, (N, D))  # positions
-    v = np.zeros((N, D))                   # velocities
+    v = np.zeros((N, D))                    # vitesses
     bestvalues = []
 
-    # Initial fitness and global best
+    # Fitness initiale et meilleur global
     fitness = func(x)
     g_index = np.argmin(fitness)
     gbest = x[g_index].copy()
     bestvalues.append(fitness[g_index])
 
-    progress = st.progress(0, text="Running GSA optimization...")
+    progress = st.progress(0, text="Exécution de l'optimisation GSA...")
 
     while t < Tmax:
         G = G0 * np.exp(-alpha * t / Tmax)
 
-        # --- Mass calculation ---
+        # --- Calcul des masses ---
         worst = np.max(fitness)
         best = np.min(fitness)
         if np.allclose(fitness, fitness[0]):
@@ -40,11 +40,11 @@ def run_gsa(G0, alpha, func, N=100, D=30, LB=-500, UB=500, Tmax=300, epsilon=1e-
             mass = m / (np.sum(m) + epsilon)
             mass = np.clip(mass, 0, None)
 
-        # --- Determine K-best agents ---
-        K = max(1, int(np.ceil(N * (Tmax - t) / Tmax)))  # ensure at least 1
+        # --- Détermination des K meilleurs agents ---
+        K = max(1, int(np.ceil(N * (Tmax - t) / Tmax)))  # au moins 1
         Kbest_idx = np.argsort(fitness)[:K]
 
-        # --- Force and acceleration calculation ---
+        # --- Calcul des forces et accélérations ---
         a = np.zeros((N, D))
         for i in range(N):
             F = np.zeros(D)
@@ -55,11 +55,11 @@ def run_gsa(G0, alpha, func, N=100, D=30, LB=-500, UB=500, Tmax=300, epsilon=1e-
                     F += np.random.rand() * G * mass[j] * diff / dist
             a[i] = F
 
-        # --- Update velocities and positions ---
+        # --- Mise à jour des vitesses et positions ---
         v = np.random.rand(N, D) * v + a
         x = np.clip(x + v, LB, UB)
 
-        # --- Update fitness and global best ---
+        # --- Mise à jour de la fitness et du meilleur global ---
         fitness = func(x)
         current_best_idx = np.argmin(fitness)
         if fitness[current_best_idx] < func(gbest[np.newaxis, :])[0]:
@@ -72,8 +72,7 @@ def run_gsa(G0, alpha, func, N=100, D=30, LB=-500, UB=500, Tmax=300, epsilon=1e-
     progress.empty()
     return bestvalues
 
-
-# ========== MULTI-TESTS FOR BENCHMARKS ==========
+# ========== MULTI-TESTS POUR BENCHMARKS ==========
 def run_tests(tests):
     results = []
     allcurves = {}
@@ -81,77 +80,75 @@ def run_tests(tests):
     for G0, alpha in tests:
         for func, fname in funcs:
             bestvalues = run_gsa(G0, alpha, func)
-            results.append({'Function': fname, 'G0': G0, 'alpha': alpha, 'Best': bestvalues[-1]})
+            results.append({'Fonction': fname, 'G0': G0, 'alpha': alpha, 'Meilleur': bestvalues[-1]})
             allcurves.setdefault(fname, {})[f"G0={G0}, alpha={alpha}"] = bestvalues
     df = pd.DataFrame(results)
     return df, allcurves
 
-
-# ========== PLOTS ==========
+# ========== GRAPHIQUES ==========
 def plot_comparisons(df, allcurves):
-    st.subheader("📊 Best Final Values Comparison")
-    for fname in df['Function'].unique():
-        subset = df[df['Function'] == fname]
-        st.write(f"**Function:** {fname}")
-        st.bar_chart(subset.set_index(subset.index.astype(str))['Best'])
+    st.subheader("📊 Comparaison des meilleurs résultats finaux")
+    for fname in df['Fonction'].unique():
+        subset = df[df['Fonction'] == fname]
+        st.write(f"**Fonction :** {fname}")
+        st.bar_chart(subset.set_index(subset.index.astype(str))['Meilleur'])
 
-    st.subheader("📉 Convergence Curves")
+    st.subheader("📉 Courbes de convergence")
     for fname, curves in allcurves.items():
         st.markdown(f"### {fname}")
         fig, ax = plt.subplots(figsize=(10, 6))
         for label, curve in curves.items():
             ax.plot(curve, label=label)
-        ax.set_xlabel("Iterations")
-        ax.set_ylabel("Fitness Value")
-        ax.set_title(f"Convergence Curves for {fname}")
+        ax.set_xlabel("Itérations")
+        ax.set_ylabel("Valeur de la fitness")
+        ax.set_title(f"Courbes de convergence pour {fname}")
         ax.legend()
         st.pyplot(fig)
 
-
-# ========== STREAMLIT INTERFACE ==========
-st.set_page_config(page_title="Gravitational Search Algorithm", layout="centered")
-st.title("🌌 Gravitational Search Algorithm (GSA) Optimization")
+# ========== INTERFACE STREAMLIT ==========
+st.set_page_config(page_title="Algorithme de Recherche Gravitationnelle", layout="centered")
+st.title("🌌 Optimisation par Algorithme de Recherche Gravitationnelle (GSA)")
 
 st.markdown("""
-This app demonstrates the **Gravitational Search Algorithm (GSA)** applied to common benchmark functions.
-Adjust parameters below and visualize convergence!
+Cette application démontre l'**Algorithme de Recherche Gravitationnelle (GSA)** appliqué à des fonctions de référence classiques.
+Ajustez les paramètres ci-dessous et visualisez la convergence !
 """)
 
-# --- Sidebar controls ---
-st.sidebar.header("⚙️ GSA Parameters")
+# --- Contrôles dans la barre latérale ---
+st.sidebar.header("⚙️ Paramètres GSA")
 
-func_option = st.sidebar.selectbox("Objective Function", ('f1 Unimodal (Sphere)', 'f8 Multimodal (Schwefel-like)'))
+func_option = st.sidebar.selectbox("Fonction objectif", ('f1 Unimodale (Sphere)', 'f8 Multimodale (type Schwefel)'))
 func = f1 if 'f1' in func_option else f8
 
-G0 = st.sidebar.slider("Initial gravitational constant (G0)", 1.0, 200.0, 100.0)
-alpha = st.sidebar.slider("Decay rate (alpha)", 1.0, 50.0, 20.0)
-N = st.sidebar.slider("Population size (N)", 10, 200, 100, step=10)
+G0 = st.sidebar.slider("Constante gravitationnelle initiale (G0)", 1.0, 200.0, 100.0)
+alpha = st.sidebar.slider("Taux de décroissance (alpha)", 1.0, 50.0, 20.0)
+N = st.sidebar.slider("Taille de population (N)", 10, 200, 100, step=10)
 D = st.sidebar.slider("Dimensions (D)", 2, 50, 30, step=2)
-Tmax = st.sidebar.slider("Iterations (Tmax)", 50, 1000, 300, step=50)
-LB = st.sidebar.number_input("Lower Bound (LB)", value=-500.0)
-UB = st.sidebar.number_input("Upper Bound (UB)", value=500.0)
+Tmax = st.sidebar.slider("Nombre d'itérations (Tmax)", 50, 1000, 300, step=50)
+LB = st.sidebar.number_input("Borne inférieure (LB)", value=-500.0)
+UB = st.sidebar.number_input("Borne supérieure (UB)", value=500.0)
 
 st.sidebar.markdown("---")
-run_button = st.sidebar.button("🚀 Run GSA")
+run_button = st.sidebar.button("🚀 Lancer GSA")
 
-# --- Run Optimization ---
+# --- Lancer l'optimisation ---
 if run_button:
-    with st.spinner("Running GSA optimization..."):
+    with st.spinner("Exécution de l'optimisation GSA..."):
         bestvalues = run_gsa(G0, alpha, func, N=N, D=D, LB=LB, UB=UB, Tmax=Tmax)
 
-    st.success("✅ Optimization Complete!")
-    st.write(f"**Best fitness found:** {bestvalues[-1]:.6f}")
+    st.success("✅ Optimisation terminée !")
+    st.write(f"**Meilleure fitness trouvée :** {bestvalues[-1]:.6f}")
     st.line_chart(bestvalues, height=300, use_container_width=True)
 
-# --- Optional test mode ---
-test_mode = st.checkbox("📈 Compare Multiple (G0, α) Combinations")
+# --- Mode test optionnel ---
+test_mode = st.checkbox("📈 Comparer plusieurs combinaisons (G0, α)")
 
 if test_mode:
-    st.info("Running predefined tests with various G0 and alpha values...")
+    st.info("Exécution des tests prédéfinis avec différentes valeurs de G0 et alpha...")
     tests = [(100, 20), (50, 10), (150, 30), (200, 40)]
     df, allcurves = run_tests(tests)
     st.dataframe(df)
     plot_comparisons(df, allcurves)
 
 st.markdown("---")
-st.caption("Developed by Sali7a & Titi | © 2025")
+st.caption("Développé par Ahmed Bensalah & Taher Chaltout | © 2025")
