@@ -20,8 +20,9 @@ Python 3.9+, Streamlit, Numpy, Pandas, Matplotlib
 ## Utilisation
 ```bash
 streamlit run app.py
-Utilisez la barre latérale pour ajuster les paramètres, choisir la fonction objectif et lancer l'optimisation. Activez le mode multi-tests pour comparer plusieurs configurations.
 ```
+Utilisez la barre latérale pour ajuster les paramètres, choisir la fonction objectif et lancer l'optimisation. Activez le mode multi-tests pour comparer plusieurs configurations.
+
 
 ## Auteur
 Développé par Sali7a & Titi | © 2025
