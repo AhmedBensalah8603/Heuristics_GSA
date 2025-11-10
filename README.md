@@ -13,7 +13,7 @@ Cette application Streamlit illustre l'**Algorithme de Recherche Gravitationnell
 git clone https://github.com/votre-utilisateur/gsa-streamlit.git
 cd gsa-streamlit
 pip install -r requirements.txt
-
+```
 ## Prérequis
 Python 3.9+, Streamlit, Numpy, Pandas, Matplotlib
 
@@ -21,6 +21,6 @@ Python 3.9+, Streamlit, Numpy, Pandas, Matplotlib
 ```bash
 streamlit run app.py
 Utilisez la barre latérale pour ajuster les paramètres, choisir la fonction objectif et lancer l'optimisation. Activez le mode multi-tests pour comparer plusieurs configurations.
-
+```
 ##Auteur
 Développé par Sali7a & Titi | © 2025
